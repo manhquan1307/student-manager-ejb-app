@@ -38,15 +38,18 @@ services:
       - appnet
     command: >
       sh -c "
-        echo '🕒 Waiting for MySQL to fully start...' &&
-        sleep 60 &&
+        echo 'Waiting for MySQL to fully start...' &&
+        sleep 20 &&
         asadmin start-domain && sleep 15 &&
         echo 'AS_ADMIN_PASSWORD=' > /tmp/pwdfile &&
         echo 'AS_ADMIN_NEWPASSWORD=admin123' >> /tmp/pwdfile &&
         asadmin change-admin-password --user admin --passwordfile /tmp/pwdfile &&
         echo 'AS_ADMIN_PASSWORD=admin123' > /tmp/pwdfile &&
         asadmin --user admin --passwordfile /tmp/pwdfile enable-secure-admin &&
-        asadmin --user admin --passwordfile /tmp/pwdfile create-jdbc-connection-pool --datasourceclassname=com.mysql.jdbc.jdbc2.optional.MysqlDataSource --restype=javax.sql.DataSource --property=user=ejbuser:password=ejbpass:DatabaseName=ejbdb:ServerName=mysql:PortNumber=3306:useSSL=false:connectTimeout=5000 MySQLPool &&
+        echo 'Checking MySQL driver...' && \
+        ls -la /opt/glassfish4/glassfish/domains/domain1/lib/ext/ && \
+        sleep 5 && \
+        asadmin --user admin --passwordfile /tmp/pwdfile create-jdbc-connection-pool --datasourceclassname=com.mysql.cj.jdbc.MysqlDataSource --restype=javax.sql.DataSource --property=user=ejbuser:password=ejbpass:databaseName=ejbdb:serverName=mysql:portNumber=3306:useSSL=false:allowPublicKeyRetrieval=true:serverTimezone=UTC MySQLPool &&
         asadmin --user admin --passwordfile /tmp/pwdfile create-jdbc-resource --connectionpoolid MySQLPool jdbc/ejbDS &&
         asadmin stop-domain && asadmin start-domain &&
         tail -f /opt/glassfish4/glassfish/domains/domain1/logs/server.log

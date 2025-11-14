@@ -290,13 +290,22 @@ public class StudentManagerServlet extends HttpServlet {
         out.println("<title>Student Manager</title>");
         out.println("<style>");
         out.println("body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }");
-        out.println(".container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
+        out.println(".container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }");
         out.println("h1 { color: #333; }");
-        out.println(".menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }");
+        out.println("h2 { color: #555; margin-top: 30px; border-bottom: 2px solid #4CAF50; padding-bottom: 10px; }");
+        out.println(".menu { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; margin-bottom: 30px; }");
         out.println(".menu-item { padding: 20px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px; text-align: center; }");
         out.println(".menu-item:hover { background: #45a049; }");
         out.println(".menu-item.secondary { background: #2196F3; }");
         out.println(".menu-item.secondary:hover { background: #0b7dda; }");
+        out.println(".lists-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }");
+        out.println(".list-section { background: #f9f9f9; padding: 15px; border-radius: 5px; }");
+        out.println("table { width: 100%; border-collapse: collapse; margin-top: 10px; }");
+        out.println("th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 0.9em; }");
+        out.println("th { background-color: #4CAF50; color: white; }");
+        out.println("tr:hover { background-color: #f5f5f5; }");
+        out.println(".empty-msg { color: #666; font-style: italic; padding: 10px; }");
+        out.println(".error-msg { color: #d32f2f; padding: 10px; }");
         out.println("</style>");
         out.println("</head>");
         out.println("<body>");
@@ -309,11 +318,60 @@ public class StudentManagerServlet extends HttpServlet {
         out.println("<a href='student-manager?action=addCourse' class='menu-item secondary'>Add Course to Student</a>");
         out.println("<a href='student-manager?action=viewCourses' class='menu-item secondary'>View Student Courses</a>");
         out.println("</div>");
+
+        // Display Students List
+        out.println("<h2>Students List</h2>");
+        try {
+            StudentHome studentHome = getStudentHome();
+            Collection<Student> students = studentHome.findAll();
+
+            if (students != null && !students.isEmpty()) {
+                out.println("<table>");
+                out.println("<tr><th>Student ID</th><th>Name</th><th>Email</th></tr>");
+                for (Student student : students) {
+                    out.println("<tr>");
+                    out.println("<td>" + (student.getStudentId() != null ? student.getStudentId() : "N/A") + "</td>");
+                    out.println("<td>" + (student.getName() != null ? student.getName() : "N/A") + "</td>");
+                    out.println("<td>" + (student.getEmail() != null ? student.getEmail() : "N/A") + "</td>");
+                    out.println("</tr>");
+                }
+                out.println("</table>");
+            } else {
+                out.println("<p class='empty-msg'>No students found. <a href='student-manager?action=createStudent'>Create a student</a> to get started.</p>");
+            }
+        } catch (Exception e) {
+            out.println("<p class='error-msg'>Error loading students: " + (e.getMessage() != null ? e.getMessage() : "Unknown error") + "</p>");
+        }
+
+        // Display Courses List
+        out.println("<h2>Courses List</h2>");
+        try {
+            CourseHome courseHome = getCourseHome();
+            Collection<Course> courses = courseHome.findAll();
+
+            if (courses != null && !courses.isEmpty()) {
+                out.println("<table>");
+                out.println("<tr><th>Course ID</th><th>Course Name</th><th>Course Code</th></tr>");
+                for (Course course : courses) {
+                    out.println("<tr>");
+                    out.println("<td>" + (course.getCourseId() != null ? course.getCourseId() : "N/A") + "</td>");
+                    out.println("<td>" + (course.getCourseName() != null ? course.getCourseName() : "N/A") + "</td>");
+                    out.println("<td>" + (course.getCourseCode() != null ? course.getCourseCode() : "N/A") + "</td>");
+                    out.println("</tr>");
+                }
+                out.println("</table>");
+            } else {
+                out.println("<p class='empty-msg'>No courses found. <a href='student-manager?action=createCourse'>Create a course</a> to get started.</p>");
+            }
+        } catch (Exception e) {
+            out.println("<p class='error-msg'>Error loading courses: " + (e.getMessage() != null ? e.getMessage() : "Unknown error") + "</p>");
+        }
+
         out.println("</div>");
         out.println("</body>");
         out.println("</html>");
     }
-    
+
     private void showCreateStudentForm(PrintWriter out) {
         out.println("<!DOCTYPE html>");
         out.println("<html>");
@@ -349,7 +407,7 @@ public class StudentManagerServlet extends HttpServlet {
         out.println("</body>");
         out.println("</html>");
     }
-    
+
     private void showCreateCourseForm(PrintWriter out) {
         out.println("<!DOCTYPE html>");
         out.println("<html>");
@@ -385,7 +443,7 @@ public class StudentManagerServlet extends HttpServlet {
         out.println("</body>");
         out.println("</html>");
     }
-    
+
     private void showAddCourseForm(PrintWriter out, HttpServletRequest request) {
         out.println("<!DOCTYPE html>");
         out.println("<html>");
@@ -408,17 +466,17 @@ public class StudentManagerServlet extends HttpServlet {
         out.println("<body>");
         out.println("<div class='container'>");
         out.println("<h1>Add Course to Student</h1>");
-        
+
         try {
             StudentHome studentHome = getStudentHome();
             CourseHome courseHome = getCourseHome();
-            
+
             Collection<Student> students = studentHome.findAll();
             Collection<Course> courses = courseHome.findAll();
-            
+
             out.println("<form method='post' action='student-manager'>");
             out.println("<input type='hidden' name='action' value='addCourse'>");
-            
+
             out.println("<label>Select Student:</label>");
             if (students != null && !students.isEmpty()) {
                 out.println("<select name='studentId' required>");
@@ -435,7 +493,7 @@ public class StudentManagerServlet extends HttpServlet {
                 out.println("</select>");
                 out.println("<p class='error-msg'>No students found. Please <a href='student-manager?action=createStudent'>create a student</a> first.</p>");
             }
-            
+
             out.println("<label>Select Course:</label>");
             if (courses != null && !courses.isEmpty()) {
                 out.println("<select name='courseId' required>");
@@ -452,21 +510,21 @@ public class StudentManagerServlet extends HttpServlet {
                 out.println("</select>");
                 out.println("<p class='error-msg'>No courses found. Please <a href='student-manager?action=createCourse'>create a course</a> first.</p>");
             }
-            
+
             if ((students != null && !students.isEmpty()) && (courses != null && !courses.isEmpty())) {
                 out.println("<button type='submit'>Add Course to Student</button>");
             } else {
                 out.println("<button type='submit' disabled>Add Course to Student</button>");
             }
-            
+
             out.println("</form>");
-            
+
             if ((students != null && !students.isEmpty()) && (courses != null && !courses.isEmpty())) {
                 out.println("<div class='info'>");
                 out.println("<strong>Note:</strong> You can also manually enter IDs if needed, but using the dropdown is recommended.");
                 out.println("</div>");
             }
-            
+
         } catch (Exception e) {
             out.println("<p class='error-msg'>Error loading students/courses: " + e.getMessage() + "</p>");
             out.println("<form method='post' action='student-manager'>");
@@ -478,16 +536,16 @@ public class StudentManagerServlet extends HttpServlet {
             out.println("<button type='submit'>Add Course</button>");
             out.println("</form>");
         }
-        
+
         out.println("<a href='student-manager'>Back</a>");
         out.println("</div>");
         out.println("</body>");
         out.println("</html>");
     }
-    
+
     private void showStudentCourses(PrintWriter out, HttpServletRequest request) {
         String studentIdParam = request.getParameter("studentId");
-        
+
         out.println("<!DOCTYPE html>");
         out.println("<html>");
         out.println("<head>");
@@ -515,37 +573,106 @@ public class StudentManagerServlet extends HttpServlet {
         out.println("<form method='get' action='student-manager'>");
         out.println("<input type='hidden' name='action' value='viewCourses'>");
         out.println("<label>Student ID:</label>");
-        out.println("<input type='number' name='studentId' value='" + 
+        out.println("<input type='number' name='studentId' value='" +
                     (studentIdParam != null ? studentIdParam : "") + "' required>");
         out.println("<button type='submit'>View Courses</button>");
         out.println("</form>");
-        
-        if (studentIdParam != null) {
+
+        if (studentIdParam != null && !studentIdParam.trim().isEmpty()) {
             try {
                 Long studentId = Long.parseLong(studentIdParam);
                 StudentHome studentHome = getStudentHome();
-                Student student = studentHome.findByPrimaryKey(studentId);
-                Collection<Course> courses = null;
-                if (student != null) {
-                    courses = student.getCourseList();
+                Student student = null;
+
+                try {
+                    student = studentHome.findByPrimaryKey(studentId);
+                } catch (javax.ejb.ObjectNotFoundException e) {
+                    out.println("<p style='color: red; padding: 10px; background: #ffebee; border-radius: 4px;'>");
+                    out.println("Error: Student with ID <strong>" + studentId + "</strong> does not exist in the database.");
+                    out.println("</p>");
+                    return;
+                } catch (javax.ejb.FinderException e) {
+                    out.println("<p style='color: red; padding: 10px; background: #ffebee; border-radius: 4px;'>");
+                    out.println("Error finding student: " + (e.getMessage() != null ? e.getMessage() : "Unknown error"));
+                    out.println("</p>");
+                    return;
                 }
-                
-                if (courses != null && !courses.isEmpty()) {
+
+                if (student == null) {
+                    out.println("<p style='color: red; padding: 10px; background: #ffebee; border-radius: 4px;'>");
+                    out.println("Error: Student is null.");
+                    out.println("</p>");
+                    return;
+                }
+
+                Collection<Course> courses = null;
+                try {
+                    courses = student.getCourseList();
+                } catch (IllegalStateException e) {
+                    // CMR collection may not be initialized - this is normal for empty relationships
+                    courses = null;
+                } catch (Exception e) {
+                    out.println("<p style='color: red; padding: 10px; background: #ffebee; border-radius: 4px;'>");
+                    out.println("Error getting course list: " + (e.getMessage() != null ? e.getMessage() : "Unknown error"));
+                    out.println("</p>");
+                    return;
+                }
+
+                // Safely check if collection has items by trying to iterate
+                boolean hasCourses = false;
+                java.util.List<Course> courseList = new java.util.ArrayList<Course>();
+
+                if (courses != null) {
+                    try {
+                        // Try to iterate and copy to a regular list to avoid CMR collection issues
+                        for (Course course : courses) {
+                            if (course != null) {
+                                courseList.add(course);
+                                hasCourses = true;
+                            }
+                        }
+                    } catch (IllegalStateException e) {
+                        // CMR collection is not accessible - treat as empty
+                        hasCourses = false;
+                        courseList.clear();
+                    } catch (Exception e) {
+                        // Other exception - log but continue
+                        hasCourses = false;
+                        courseList.clear();
+                    }
+                }
+
+                out.println("<h3>Student: " + (student.getName() != null ? student.getName() : "N/A") +
+                          " (ID: " + student.getStudentId() + ")</h3>");
+
+                if (hasCourses && !courseList.isEmpty()) {
                     out.println("<table>");
                     out.println("<tr><th>Course ID</th><th>Course Name</th><th>Course Code</th></tr>");
-                    for (Course course : courses) {
-                        out.println("<tr>");
-                        out.println("<td>" + course.getCourseId() + "</td>");
-                        out.println("<td>" + course.getCourseName() + "</td>");
-                        out.println("<td>" + course.getCourseCode() + "</td>");
-                        out.println("</tr>");
+                    for (Course course : courseList) {
+                        try {
+                            out.println("<tr>");
+                            out.println("<td>" + (course.getCourseId() != null ? course.getCourseId() : "N/A") + "</td>");
+                            out.println("<td>" + (course.getCourseName() != null ? course.getCourseName() : "N/A") + "</td>");
+                            out.println("<td>" + (course.getCourseCode() != null ? course.getCourseCode() : "N/A") + "</td>");
+                            out.println("</tr>");
+                        } catch (Exception e) {
+                            // Skip this course if there's an error accessing it
+                            continue;
+                        }
                     }
                     out.println("</table>");
                 } else {
                     out.println("<p class='no-courses'>This student has not enrolled in any courses yet.</p>");
                 }
+            } catch (NumberFormatException e) {
+                out.println("<p style='color: red; padding: 10px; background: #ffebee; border-radius: 4px;'>");
+                out.println("Error: Invalid Student ID format. Please enter a valid number.");
+                out.println("</p>");
             } catch (Exception e) {
-                out.println("<p style='color: red;'>Error: " + e.getMessage() + "</p>");
+                out.println("<p style='color: red; padding: 10px; background: #ffebee; border-radius: 4px;'>");
+                out.println("Error: " + (e.getMessage() != null ? e.getMessage() : "Unknown error"));
+                out.println("</p>");
+                e.printStackTrace(out);
             }
         }
         

@@ -5,10 +5,12 @@
         <ejb>
             <ejb-name>StudentBean</ejb-name>
             <jndi-name>java:app/student-manager-ejbs/StudentHome</jndi-name>
+            <jdbc-resource-jndi-name>jdbc/ejbDS</jdbc-resource-jndi-name>
         </ejb>
         <ejb>
             <ejb-name>CourseBean</ejb-name>
             <jndi-name>java:app/student-manager-ejbs/CourseHome</jndi-name>
+            <jdbc-resource-jndi-name>jdbc/ejbDS</jdbc-resource-jndi-name>
         </ejb>
     </enterprise-beans>
 </glassfish-ejb-jar>

@@ -19,7 +19,7 @@ services:
   glassfish4:
     build:
       context: .
-      dockerfile: Dockerfile.glassfish
+      dockerfile: Dockerfile
     container_name: glassfish4
     restart: always
     depends_on:

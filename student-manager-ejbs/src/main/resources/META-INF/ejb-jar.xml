@@ -1,10 +1,128 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ejb-jar xmlns="http://java.sun.com/xml/ns/javaee" version="3.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/ejb-jar_3_1.xsd">
+<ejb-jar xmlns="http://java.sun.com/xml/ns/j2ee" version="2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/ejb-jar_2_1.xsd">
     
-    <!-- 
-        empty ejb-jar.xml - we use annotations for defining the ejbs
-     -->
     <display-name>StudentManager EJBs</display-name>
+    
+    <!-- Student Entity Bean CMP Configuration -->
+    <enterprise-beans>
+        <entity>
+            <ejb-name>StudentBean</ejb-name>
+            <local-home>org.sample.student.StudentHome</local-home>
+            <local>org.sample.student.Student</local>
+            <ejb-class>org.sample.student.StudentBean</ejb-class>
+            <persistence-type>Container</persistence-type>
+            <prim-key-class>java.lang.Long</prim-key-class>
+            <reentrant>false</reentrant>
+            <cmp-version>2.x</cmp-version>
+            <abstract-schema-name>Student</abstract-schema-name>
+            
+            <!-- CMP Fields -->
+            <cmp-field>
+                <field-name>studentId</field-name>
+            </cmp-field>
+            <cmp-field>
+                <field-name>name</field-name>
+            </cmp-field>
+            <cmp-field>
+                <field-name>email</field-name>
+            </cmp-field>
+            
+            <!-- Primary Key -->
+            <primkey-field>studentId</primkey-field>
+            
+            <!-- Finder Methods -->
+            <query>
+                <query-method>
+                    <method-name>findAll</method-name>
+                    <method-params/>
+                </query-method>
+                <ejb-ql>SELECT OBJECT(s) FROM Student s</ejb-ql>
+            </query>
+            <query>
+                <query-method>
+                    <method-name>findByEmail</method-name>
+                    <method-params>
+                        <method-param>java.lang.String</method-param>
+                    </method-params>
+                </query-method>
+                <ejb-ql>SELECT OBJECT(s) FROM Student s WHERE s.email = ?1</ejb-ql>
+            </query>
+        </entity>
+        
+        <!-- Course Entity Bean CMP Configuration -->
+        <entity>
+            <ejb-name>CourseBean</ejb-name>
+            <local-home>org.sample.course.CourseHome</local-home>
+            <local>org.sample.course.Course</local>
+            <ejb-class>org.sample.course.CourseBean</ejb-class>
+            <persistence-type>Container</persistence-type>
+            <prim-key-class>java.lang.Long</prim-key-class>
+            <reentrant>false</reentrant>
+            <cmp-version>2.x</cmp-version>
+            <abstract-schema-name>Course</abstract-schema-name>
+            
+            <!-- CMP Fields -->
+            <cmp-field>
+                <field-name>courseId</field-name>
+            </cmp-field>
+            <cmp-field>
+                <field-name>courseName</field-name>
+            </cmp-field>
+            <cmp-field>
+                <field-name>courseCode</field-name>
+            </cmp-field>
+            
+            <!-- Primary Key -->
+            <primkey-field>courseId</primkey-field>
+            
+            <!-- Finder Methods -->
+            <query>
+                <query-method>
+                    <method-name>findAll</method-name>
+                    <method-params/>
+                </query-method>
+                <ejb-ql>SELECT OBJECT(c) FROM Course c</ejb-ql>
+            </query>
+            <query>
+                <query-method>
+                    <method-name>findByCourseCode</method-name>
+                    <method-params>
+                        <method-param>java.lang.String</method-param>
+                    </method-params>
+                </query-method>
+                <ejb-ql>SELECT OBJECT(c) FROM Course c WHERE c.courseCode = ?1</ejb-ql>
+            </query>
+        </entity>
+    </enterprise-beans>
+    
+    <!-- CMR Relationships Configuration -->
+    <relationships>
+        <ejb-relation>
+            <ejb-relation-name>Student-Course</ejb-relation-name>
+            <ejb-relationship-role>
+                <ejb-relationship-role-name>Student-has-Courses</ejb-relationship-role-name>
+                <multiplicity>Many</multiplicity>
+                <relationship-role-source>
+                    <ejb-name>StudentBean</ejb-name>
+                </relationship-role-source>
+                <cmr-field>
+                    <cmr-field-name>courses</cmr-field-name>
+                    <cmr-field-type>java.util.Collection</cmr-field-type>
+                </cmr-field>
+            </ejb-relationship-role>
+            <ejb-relationship-role>
+                <ejb-relationship-role-name>Course-has-Students</ejb-relationship-role-name>
+                <multiplicity>Many</multiplicity>
+                <relationship-role-source>
+                    <ejb-name>CourseBean</ejb-name>
+                </relationship-role-source>
+                <cmr-field>
+                    <cmr-field-name>students</cmr-field-name>
+                    <cmr-field-type>java.util.Collection</cmr-field-type>
+                </cmr-field>
+            </ejb-relationship-role>
+        </ejb-relation>
+    </relationships>
     
 </ejb-jar>

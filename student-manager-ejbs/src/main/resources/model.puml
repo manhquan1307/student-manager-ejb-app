@@ -1,0 +1,115 @@
+@startuml Student-Course Model
+!theme plain
+skinparam classAttributeIconSize 0
+
+package "org.sample.student" {
+    class StudentBean {
+        - Long studentId
+        - String name
+        - String email
+        + Long getStudentId()
+        + void setStudentId(Long)
+        + String getName()
+        + void setName(String)
+        + String getEmail()
+        + void setEmail(String)
+        + Collection<Course> getCourses()
+        + void setCourses(Collection<Course>)
+        + void addCourse(Course)
+        + Collection<Course> getCourseList()
+    }
+    
+    interface Student {
+        + Long getStudentId()
+        + void setStudentId(Long)
+        + String getName()
+        + void setName(String)
+        + String getEmail()
+        + void setEmail(String)
+        + Collection<Course> getCourses()
+        + void setCourses(Collection<Course>)
+        + void addCourse(Course)
+        + Collection<Course> getCourseList()
+    }
+    
+    interface StudentHome {
+        + Student create(Long, String, String)
+        + Student findByPrimaryKey(Long)
+        + Collection findAll()
+        + Student findByEmail(String)
+    }
+}
+
+package "org.sample.course" {
+    class CourseBean {
+        - Long courseId
+        - String courseName
+        - String courseCode
+        + Long getCourseId()
+        + void setCourseId(Long)
+        + String getCourseName()
+        + void setCourseName(String)
+        + String getCourseCode()
+        + void setCourseCode(String)
+        + Collection<Student> getStudents()
+        + void setStudents(Collection<Student>)
+    }
+    
+    interface Course {
+        + Long getCourseId()
+        + void setCourseId(Long)
+        + String getCourseName()
+        + void setCourseName(String)
+        + String getCourseCode()
+        + void setCourseCode(String)
+        + Collection<Student> getStudents()
+        + void setStudents(Collection<Student>)
+    }
+    
+    interface CourseHome {
+        + Course create(Long, String, String)
+        + Course findByPrimaryKey(Long)
+        + Collection findAll()
+        + Course findByCourseCode(String)
+    }
+}
+
+' Relationships
+StudentBean ..|> Student : implements
+StudentHome ..> Student : creates/returns
+CourseBean ..|> Course : implements
+CourseHome ..> Course : creates/returns
+
+' Many-to-Many relationship
+Student "many" -- "many" Course : enrolls in
+
+note right of Student
+    CMP Entity Bean
+    Primary Key: studentId
+    CMP Fields:
+    - studentId
+    - name
+    - email
+    CMR Field:
+    - courses (Collection<Course>)
+end note
+
+note right of Course
+    CMP Entity Bean
+    Primary Key: courseId
+    CMP Fields:
+    - courseId
+    - courseName
+    - courseCode
+    CMR Field:
+    - students (Collection<Student>)
+end note
+
+note bottom of Student
+    Business Methods:
+    - addCourse(Course): Thêm khóa học cho sinh viên
+    - getCourseList(): Liệt kê danh sách khóa học
+end note
+
+@enduml
+

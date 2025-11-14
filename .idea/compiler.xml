@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="student-manager-ear" />
+        <module name="student-manager-webapp" />
+        <module name="student-manager-ejbs" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="acme-ejbs" target="1.8" />
+      <module name="sample-ear" target="1.5" />
+      <module name="sample-ejbs" target="1.8" />
+      <module name="sample-webapp" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

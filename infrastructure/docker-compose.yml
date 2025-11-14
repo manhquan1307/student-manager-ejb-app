@@ -1,0 +1,60 @@
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql57
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ejbdb
+      MYSQL_USER: ejbuser
+      MYSQL_PASSWORD: ejbpass
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - appnet
+
+  glassfish4:
+    build:
+      context: .
+      dockerfile: Dockerfile.glassfish
+    container_name: glassfish4
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+    ports:
+      - "8080:8080"
+      - "4848:4848"
+      - "3700:3700"
+    volumes:
+      - ./deployments:/opt/glassfish4/glassfish/domains/domain1/autodeploy
+      - ./drivers:/opt/glassfish4/glassfish/domains/domain1/lib/ext
+    networks:
+      - appnet
+    command: >
+      sh -c "
+        echo '🕒 Waiting for MySQL to fully start...' &&
+        sleep 60 &&
+        asadmin start-domain && sleep 15 &&
+        echo 'AS_ADMIN_PASSWORD=' > /tmp/pwdfile &&
+        echo 'AS_ADMIN_NEWPASSWORD=admin123' >> /tmp/pwdfile &&
+        asadmin change-admin-password --user admin --passwordfile /tmp/pwdfile &&
+        echo 'AS_ADMIN_PASSWORD=admin123' > /tmp/pwdfile &&
+        asadmin --user admin --passwordfile /tmp/pwdfile enable-secure-admin &&
+        asadmin --user admin --passwordfile /tmp/pwdfile create-jdbc-connection-pool --datasourceclassname=com.mysql.jdbc.jdbc2.optional.MysqlDataSource --restype=javax.sql.DataSource --property=user=ejbuser:password=ejbpass:DatabaseName=ejbdb:ServerName=mysql:PortNumber=3306:useSSL=false:connectTimeout=5000 MySQLPool &&
+        asadmin --user admin --passwordfile /tmp/pwdfile create-jdbc-resource --connectionpoolid MySQLPool jdbc/ejbDS &&
+        asadmin stop-domain && asadmin start-domain &&
+        tail -f /opt/glassfish4/glassfish/domains/domain1/logs/server.log
+      "
+
+volumes:
+  mysql_data:
+
+networks:
+  appnet:
+    driver: bridge

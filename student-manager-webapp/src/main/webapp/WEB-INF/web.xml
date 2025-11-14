@@ -7,6 +7,20 @@
         <welcome-file>index.html</welcome-file>
     </welcome-file-list>
 
+    <ejb-local-ref>
+        <ejb-ref-name>ejb/StudentHome</ejb-ref-name>
+        <ejb-ref-type>Entity</ejb-ref-type>
+        <local-home>org.sample.student.StudentHome</local-home>
+        <ejb-link>StudentBean</ejb-link>
+    </ejb-local-ref>
+
+    <ejb-local-ref>
+        <ejb-ref-name>ejb/CourseHome</ejb-ref-name>
+        <ejb-ref-type>Entity</ejb-ref-type>
+        <local-home>org.sample.course.CourseHome</local-home>
+        <ejb-link>CourseBean</ejb-link>
+    </ejb-local-ref>
+
     <servlet>
         <servlet-name>StudentManagerServlet</servlet-name>
         <servlet-class>org.sample.StudentManagerServlet</servlet-class>

@@ -1,8 +1,12 @@
 package org.sample;
 
 import org.sample.course.Course;
-import org.sample.student.StudentManagerFacade;
+import org.sample.course.CourseHome;
+import org.sample.student.Student;
+import org.sample.student.StudentHome;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -13,25 +17,75 @@ import java.util.Collection;
 
 public class StudentManagerServlet extends HttpServlet {
     
-    private StudentManagerFacade getFacade() {
+    private StudentHome getStudentHome() throws NamingException {
+        InitialContext ctx = new InitialContext();
         try {
-            javax.naming.InitialContext ctx = new javax.naming.InitialContext();
-            // Try different JNDI names
-            try {
-                return (StudentManagerFacade) ctx.lookup("java:comp/env/ejb/StudentManagerFacade");
-            } catch (Exception e1) {
+            // Try different JNDI names for Entity Bean Home
+            String[] jndiNames = {
+                "java:comp/env/ejb/StudentHome",
+                "java:module/StudentHome",
+                "java:app/student-manager-ejbs/StudentHome",
+                "java:app/student-manager-ejbs-0.0.1-SNAPSHOT/StudentHome",
+                "java:global/student-manager-ear/student-manager-ejbs/StudentHome",
+                "java:global/student-manager-ear/student-manager-ejbs-0.0.1-SNAPSHOT/StudentHome",
+                "java:global/student-manager-ear-0.0.1-SNAPSHOT/student-manager-ejbs/StudentHome",
+                "java:global/student-manager-ear-0.0.1-SNAPSHOT/student-manager-ejbs-0.0.1-SNAPSHOT/StudentHome"
+            };
+            
+            for (String jndiName : jndiNames) {
                 try {
-                    return (StudentManagerFacade) ctx.lookup("java:module/StudentManagerFacade");
-                } catch (Exception e2) {
-                    try {
-                        return (StudentManagerFacade) ctx.lookup("java:app/student-manager-ejbs/StudentManagerFacade");
-                    } catch (Exception e3) {
-                        return (StudentManagerFacade) ctx.lookup("java:global/student-manager-ear/student-manager-ejbs/StudentManagerFacade");
+                    Object obj = ctx.lookup(jndiName);
+                    if (obj != null && obj instanceof StudentHome) {
+                        return (StudentHome) obj;
                     }
+                } catch (Exception e) {
+                    // Continue
                 }
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Cannot get StudentManagerFacade: " + e.getMessage(), e);
+            StringBuilder tried = new StringBuilder();
+            for (int i = 0; i < jndiNames.length; i++) {
+                if (i > 0) tried.append(", ");
+                tried.append(jndiNames[i]);
+            }
+            throw new NamingException("Cannot find StudentHome. Tried: " + tried.toString());
+        } finally {
+            ctx.close();
+        }
+    }
+    
+    private CourseHome getCourseHome() throws NamingException {
+        InitialContext ctx = new InitialContext();
+        try {
+            // Try different JNDI names for Entity Bean Home
+            String[] jndiNames = {
+                "java:comp/env/ejb/CourseHome",
+                "java:module/CourseHome",
+                "java:app/student-manager-ejbs/CourseHome",
+                "java:app/student-manager-ejbs-0.0.1-SNAPSHOT/CourseHome",
+                "java:global/student-manager-ear/student-manager-ejbs/CourseHome",
+                "java:global/student-manager-ear/student-manager-ejbs-0.0.1-SNAPSHOT/CourseHome",
+                "java:global/student-manager-ear-0.0.1-SNAPSHOT/student-manager-ejbs/CourseHome",
+                "java:global/student-manager-ear-0.0.1-SNAPSHOT/student-manager-ejbs-0.0.1-SNAPSHOT/CourseHome"
+            };
+            
+            for (String jndiName : jndiNames) {
+                try {
+                    Object obj = ctx.lookup(jndiName);
+                    if (obj != null && obj instanceof CourseHome) {
+                        return (CourseHome) obj;
+                    }
+                } catch (Exception e) {
+                    // Continue
+                }
+            }
+            StringBuilder tried = new StringBuilder();
+            for (int i = 0; i < jndiNames.length; i++) {
+                if (i > 0) tried.append(", ");
+                tried.append(jndiNames[i]);
+            }
+            throw new NamingException("Cannot find CourseHome. Tried: " + tried.toString());
+        } finally {
+            ctx.close();
         }
     }
     
@@ -97,7 +151,8 @@ public class StudentManagerServlet extends HttpServlet {
                 String name = request.getParameter("name");
                 String email = request.getParameter("email");
                 
-                getFacade().createStudent(studentId, name, email);
+                StudentHome studentHome = getStudentHome();
+                studentHome.create(studentId, name, email);
                 out.println("<html><body>");
                 out.println("<h2>Student created successfully!</h2>");
                 out.println("<p>Student ID: " + studentId + "</p>");
@@ -111,7 +166,8 @@ public class StudentManagerServlet extends HttpServlet {
                 String courseName = request.getParameter("courseName");
                 String courseCode = request.getParameter("courseCode");
                 
-                getFacade().createCourse(courseId, courseName, courseCode);
+                CourseHome courseHome = getCourseHome();
+                courseHome.create(courseId, courseName, courseCode);
                 out.println("<html><body>");
                 out.println("<h2>Course created successfully!</h2>");
                 out.println("<p>Course ID: " + courseId + "</p>");
@@ -124,7 +180,13 @@ public class StudentManagerServlet extends HttpServlet {
                 Long studentId = Long.parseLong(request.getParameter("studentId"));
                 Long courseId = Long.parseLong(request.getParameter("courseId"));
                 
-                getFacade().addCourseToStudent(studentId, courseId);
+                StudentHome studentHome = getStudentHome();
+                CourseHome courseHome = getCourseHome();
+                Student student = studentHome.findByPrimaryKey(studentId);
+                Course course = courseHome.findByPrimaryKey(courseId);
+                if (student != null && course != null) {
+                    student.addCourse(course);
+                }
                 out.println("<html><body>");
                 out.println("<h2>Course added to student successfully!</h2>");
                 out.println("<p>Student ID: " + studentId + "</p>");
@@ -325,7 +387,12 @@ public class StudentManagerServlet extends HttpServlet {
         if (studentIdParam != null) {
             try {
                 Long studentId = Long.parseLong(studentIdParam);
-                Collection<Course> courses = getFacade().getCourseList(studentId);
+                StudentHome studentHome = getStudentHome();
+                Student student = studentHome.findByPrimaryKey(studentId);
+                Collection<Course> courses = null;
+                if (student != null) {
+                    courses = student.getCourseList();
+                }
                 
                 if (courses != null && !courses.isEmpty()) {
                     out.println("<table>");
@@ -352,3 +419,4 @@ public class StudentManagerServlet extends HttpServlet {
         out.println("</html>");
     }
 }
+

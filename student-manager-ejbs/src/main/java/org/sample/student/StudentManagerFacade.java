@@ -2,7 +2,7 @@ package org.sample.student;
 
 import org.sample.course.Course;
 import org.sample.course.CourseHome;
-import javax.ejb.EJB;
+import javax.ejb.LocalBean;
 import javax.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -16,6 +16,7 @@ import java.util.Collection;
  * - List courses for a student (getCourseList)
  */
 @Stateless
+@LocalBean
 public class StudentManagerFacade {
     
     /**
